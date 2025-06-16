@@ -8,85 +8,57 @@ Original file is located at
 """
 
 !pip install streamlit
-
 import streamlit as st
 import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
-import os
 import gdown
+import os
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+import matplotlib.pyplot as plt
+from PIL import Image
 
 # Constants
+MODEL_ID = "10vU_bpL1dv-m1LrtmQXFEHPnB6Om3dLf"  # ✅ Your COVID model file ID
+MODEL_FILE = "covid_model.h5"
 IMG_SIZE = 224
 
-# Google Drive File IDs
-MODEL_IDS = {
-    "covid": "10vU_bpL1dv-m1LrtmQXFEHPnB6Om3dLf",
-    "brain": "1q-9E1ClSyZaTQUndee84GAhohJtxSqeO",
-    "alzheimer": "1O0aGbCvC_cLhDxxIqAdTPBK_DqGp76a7"
-}
+# Download model from Google Drive if not already downloaded
+def download_model():
+    if not os.path.exists(MODEL_FILE):
+        url = f"https://drive.google.com/uc?id={MODEL_ID}"
+        with st.spinner("📥 Downloading COVID Model..."):
+            gdown.download(url, MODEL_FILE, quiet=False)
+        st.success("✅ Model downloaded!")
 
-# Local filenames
-MODEL_FILES = {
-    "covid": "covid_model.h5",
-    "brain": "brain_model.h5",
-    "alzheimer": "alzheimer_model.h5"
-}
+# Image prediction
+def predict(img_path):
+    model = load_model(MODEL_FILE)
+    st.success("✅ Model Loaded Successfully")
 
-# Class label mapping
-CLASS_LABELS = {
-    "alzheimer": ["NonDemented", "VeryMildDemented", "MildDemented", "ModerateDemented"],
-    "brain": ["No Tumor", "Tumor"]
-}
+    img = image.load_img(img_path, target_size=(IMG_SIZE, IMG_SIZE))
+    st.image(img, caption="🖼️ Uploaded Image", use_column_width=True)
 
-# Download model if not present
-def download_model(file_id, filename):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    if not os.path.exists(filename):
-        with st.spinner(f"📥 Downloading {filename}..."):
-            gdown.download(url, filename, quiet=False)
-        st.success(f"✅ Downloaded: {filename}")
-
-# Image prediction logic
-def predict_image(model_path, image_file, is_binary=True, inv_labels=None):
-    model = load_model(model_path)
-    st.success(f"✅ Model Loaded: {model_path}")
-
-    img = load_img(image_file, target_size=(IMG_SIZE, IMG_SIZE))
-    st.image(img, caption="Uploaded Image", use_column_width=True)
-
-    img_array = img_to_array(img)
+    img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0) / 255.0
 
-    prediction = model.predict(img_array)
+    prediction = model.predict(img_array)[0][0]
+    st.write("🔍 Prediction Score:", prediction)
 
-    if is_binary:
-        score = prediction[0][0]
-        st.write("🔍 Prediction Score:", score)
-        if score <= 0.5:
-            st.error("🧪 Result: Positive")
-        else:
-            st.success("🧪 Result: Negative")
+    if prediction >= 0.5:
+        st.error("🧪 COVID Detected")
     else:
-        index = np.argmax(prediction)
-        label = inv_labels[index] if inv_labels else f"Class {index}"
-        st.write("🔍 Prediction Probabilities:", prediction[0])
-        st.info(f"🧠 Predicted Class: {label}")
+        st.success("🧼 No COVID Detected")
 
 # Streamlit UI
-st.title("🧬 Multi-Disease Image Classifier")
+st.set_page_config(page_title="🦠 COVID Classifier", layout="centered")
+st.title("🦠 COVID Image Classifier")
+st.write("Upload a Chest X-ray image to check for COVID infection.")
 
-class_name = st.text_input("📌 Enter class (covid / brain / alzheimer):").strip().lower()
+# Start app
+download_model()
 
-if class_name:
-    if class_name in MODEL_IDS:
-        # Download model if not available
-        download_model(MODEL_IDS[class_name], MODEL_FILES[class_name])
-        
-        uploaded_file = st.file_uploader("📂 Upload an image", type=["jpg", "jpeg", "png"])
-        if uploaded_file is not None:
-            is_binary = class_name == "covid"
-            inv_labels = CLASS_LABELS.get(class_name)
-            predict_image(MODEL_FILES[class_name], uploaded_file, is_binary, inv_labels)
-    else:
-        st.warning("⚠️ Invalid class. Use: covid, brain, or alzheimer.")
+uploaded_file = st.file_uploader("📂 Upload X-ray Image", type=["jpg", "jpeg", "png"])
+if uploaded_file is not None:
+    with open("temp.jpg", "wb") as f:
+        f.write(uploaded_file.read())
+    predict("temp.jpg")
