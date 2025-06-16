@@ -13,42 +13,43 @@ import random
 # Set page config
 st.set_page_config(page_title="🯪 Health Checker", layout="wide")
 
-# Session state toggle via URL
-query_params = st.query_params
+# Initialize session state variable for chat visibility
+if "chat_visible" not in st.session_state:
+    st.session_state.chat_visible = False
 
-toggle_chat = query_params.get("chat", ["false"])[0] == "true"
-st.session_state.chat_visible = toggle_chat
+# Floating Button that toggles chat in-place
+chat_button_clicked = st.button("💬", key="toggle_chat", help="Toggle Chatbox")
 
-# Floating Button + Toggle logic
-floating_button_html = f"""
-<style>
-.floating-btn {{
-    position: fixed;
-    top: 40%;
-    right: 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-    text-align: center;
-    line-height: 60px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-    z-index: 9999;
-    transition: transform 0.3s ease-in-out;
-    cursor: pointer;
-}}
-.floating-btn:hover {{
-    transform: scale(1.1);
-}}
-</style>
-<a href='?chat={("false" if st.session_state.chat_visible else "true")}'>
-<div class='floating-btn'>💬</div>
-</a>
-"""
-st.markdown(floating_button_html, unsafe_allow_html=True)
+# Toggle logic without page reload
+if chat_button_clicked:
+    st.session_state.chat_visible = not st.session_state.chat_visible
+
+# Custom CSS for floating button
+st.markdown("""
+    <style>
+    div[data-testid="stButton"] > button {
+        position: fixed;
+        top: 40%;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+        text-align: center;
+        line-height: 60px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        z-index: 9999;
+        transition: transform 0.3s ease-in-out;
+        cursor: pointer;
+    }
+    div[data-testid="stButton"] > button:hover {
+        transform: scale(1.1);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # App layout
 left, center, right = st.columns([1, 2, 3])
