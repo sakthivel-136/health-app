@@ -22,7 +22,11 @@ if st.button(chat_button, key="toggle_chat", help="Chat with assistant"):
     st.session_state.chat_visible = not st.session_state.chat_visible
 
 # App layout
-left, right = st.columns([1, 3])
+left, center, right = st.columns([1, 2, 3])
+
+# Center title
+with center:
+    st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Health Checker</h1>", unsafe_allow_html=True)
 
 # Sidebar (left column) - tool selection
 with left:
