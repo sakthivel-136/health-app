@@ -9,56 +9,28 @@ Original file is located at
 
 !pip install streamlit
 import streamlit as st
-import numpy as np
-import gdown
-import os
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-import matplotlib.pyplot as plt
-from PIL import Image
 
-# Constants
-MODEL_ID = "10vU_bpL1dv-m1LrtmQXFEHPnB6Om3dLf"  # ✅ Your COVID model file ID
-MODEL_FILE = "covid_model.h5"
-IMG_SIZE = 224
+# Title
+st.title("BMI Calculator")
 
-# Download model from Google Drive if not already downloaded
-def download_model():
-    if not os.path.exists(MODEL_FILE):
-        url = f"https://drive.google.com/uc?id={MODEL_ID}"
-        with st.spinner("📥 Downloading COVID Model..."):
-            gdown.download(url, MODEL_FILE, quiet=False)
-        st.success("✅ Model downloaded!")
+# Inputs
+height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
+weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
 
-# Image prediction
-def predict(img_path):
-    model = load_model(MODEL_FILE)
-    st.success("✅ Model Loaded Successfully")
-
-    img = image.load_img(img_path, target_size=(IMG_SIZE, IMG_SIZE))
-    st.image(img, caption="🖼️ Uploaded Image", use_column_width=True)
-
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
-
-    prediction = model.predict(img_array)[0][0]
-    st.write("🔍 Prediction Score:", prediction)
-
-    if prediction >= 0.5:
-        st.error("🧪 COVID Detected")
+# Calculate Button
+if st.button("Calculate BMI"):
+    if height > 0:
+        bmi = weight / (height ** 2)
+        st.success(f"Your BMI is: {bmi:.2f}")
+        
+        # BMI Category
+        if bmi < 18.5:
+            st.info("You are underweight.")
+        elif 18.5 <= bmi < 24.9:
+            st.success("You have a normal weight.")
+        elif 25 <= bmi < 29.9:
+            st.warning("You are overweight.")
+        else:
+            st.error("You are obese.")
     else:
-        st.success("🧼 No COVID Detected")
-
-# Streamlit UI
-st.set_page_config(page_title="🦠 COVID Classifier", layout="centered")
-st.title("🦠 COVID Image Classifier")
-st.write("Upload a Chest X-ray image to check for COVID infection.")
-
-# Start app
-download_model()
-
-uploaded_file = st.file_uploader("📂 Upload X-ray Image", type=["jpg", "jpeg", "png"])
-if uploaded_file is not None:
-    with open("temp.jpg", "wb") as f:
-        f.write(uploaded_file.read())
-    predict("temp.jpg")
+        st.error("Height must be greater than 0.")
