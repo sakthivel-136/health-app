@@ -10,26 +10,32 @@ Original file is located at
 
 import streamlit as st
 
-import streamlit as st
-
-# Set the page config
+# Page settings
 st.set_page_config(page_title="Health Checker", layout="centered")
 
-# Centered main heading
+# Title
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Health Checker</h1>", unsafe_allow_html=True)
 
-# Sidebar with options
-option = st.sidebar.radio(
-    "Choose a Health Tool",
-    ("BMI Calculator", "Blood Pressure Checker", "Hydration Checker", "Workout Calories Estimator")
+# Sidebar options
+tool = st.sidebar.selectbox(
+    "🩺 Choose a Health Tool",
+    ("None", "BMI Calculator", "Blood Pressure Checker", "Hydration Checker", "Workout Calorie Estimator",
+     "Heart Rate Monitor", "Sleep Tracker", "Diabetes Risk Checker", "Step Counter", "Stress Level Estimator", "Vision Check")
 )
 
-# BMI Calculator
-if option == "BMI Calculator":
+# Handle the selected tool
+if tool == "None":
+    # Show moving motivational quote (marquee effect)
+    st.markdown("""
+        <marquee behavior="scroll" direction="left" scrollamount="6" style="color:#ff5722; font-size:24px; font-weight:bold;">
+            When the going gets rough, the tough gets going. Everyday I’m surviving just to keep on thriving.
+        </marquee>
+    """, unsafe_allow_html=True)
+
+elif tool == "BMI Calculator":
     st.header("🧮 BMI Calculator")
     height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
     weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
-
     if st.button("Calculate BMI"):
         if height > 0:
             bmi = weight / (height ** 2)
@@ -45,12 +51,10 @@ if option == "BMI Calculator":
         else:
             st.error("Height must be greater than 0.")
 
-# Blood Pressure Checker
-elif option == "Blood Pressure Checker":
+elif tool == "Blood Pressure Checker":
     st.header("🩺 Blood Pressure Checker")
     systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
     diastolic = st.number_input("Enter Diastolic (lower) value:", min_value=0)
-
     if st.button("Check BP"):
         if systolic < 90 or diastolic < 60:
             st.warning("Low Blood Pressure (Hypotension)")
@@ -61,12 +65,10 @@ elif option == "Blood Pressure Checker":
         else:
             st.error("High Blood Pressure (Hypertension)")
 
-# Hydration Checker
-elif option == "Hydration Checker":
-    st.header("💧 Are You Hydrated?")
-    water_intake = st.number_input("Enter water intake today (in liters):", min_value=0.0, format="%.2f")
-    weight = st.number_input("Enter your weight (in kg):", min_value=0.0, format="%.2f")
-
+elif tool == "Hydration Checker":
+    st.header("💧 Hydration Checker")
+    water_intake = st.number_input("Water intake today (in liters):", min_value=0.0, format="%.2f")
+    weight = st.number_input("Your weight (in kg):", min_value=0.0, format="%.2f")
     if st.button("Check Hydration"):
         recommended = weight * 0.033
         st.info(f"Recommended: {recommended:.2f} L/day")
@@ -75,20 +77,81 @@ elif option == "Hydration Checker":
         else:
             st.warning("You need to drink more water.")
 
-# Workout Calories Estimator
-elif option == "Workout Calories Estimator":
-    st.header("🏋️ Workout Calorie Burn Estimator")
-    activity = st.selectbox("Select your workout", ["Running", "Cycling", "Walking", "Yoga", "Weight Training"])
-    duration = st.number_input("Enter duration in minutes:", min_value=1)
-
-    calorie_burn_rate = {
-        "Running": 10,
-        "Cycling": 8,
-        "Walking": 4,
-        "Yoga": 3,
-        "Weight Training": 6
-    }
-
+elif tool == "Workout Calorie Estimator":
+    st.header("🏋️ Workout Calorie Estimator")
+    activity = st.selectbox("Select workout", ["Running", "Cycling", "Walking", "Yoga", "Weight Training"])
+    duration = st.number_input("Duration in minutes:", min_value=1)
+    calorie_map = {"Running": 10, "Cycling": 8, "Walking": 4, "Yoga": 3, "Weight Training": 6}
     if st.button("Estimate Calories Burned"):
-        burned = duration * calorie_burn_rate[activity]
-        st.success(f"You have burned approximately {burned} calories by {activity.lower()} for {duration} minutes.")
+        burned = duration * calorie_map[activity]
+        st.success(f"Estimated: {burned} calories burned by {activity.lower()}.")
+
+elif tool == "Heart Rate Monitor":
+    st.header("❤️ Heart Rate Monitor")
+    bpm = st.number_input("Enter your heart rate (BPM):", min_value=0)
+    if st.button("Analyze Heart Rate"):
+        if bpm < 60:
+            st.warning("Bradycardia (Slow Heart Rate)")
+        elif 60 <= bpm <= 100:
+            st.success("Normal Heart Rate")
+        else:
+            st.error("Tachycardia (Fast Heart Rate)")
+
+elif tool == "Sleep Tracker":
+    st.header("😴 Sleep Tracker")
+    hours = st.slider("How many hours did you sleep last night?", 0, 12)
+    if st.button("Evaluate Sleep"):
+        if hours < 6:
+            st.warning("You need more sleep.")
+        elif 6 <= hours <= 8:
+            st.success("Good sleep!")
+        else:
+            st.info("Oversleeping isn't always good either!")
+
+elif tool == "Diabetes Risk Checker":
+    st.header("🧪 Diabetes Risk Checker")
+    age = st.number_input("Age", min_value=0)
+    bmi = st.number_input("BMI", min_value=0.0)
+    family_history = st.selectbox("Family History of Diabetes?", ["Yes", "No"])
+    if st.button("Check Risk"):
+        risk = 0
+        if age > 45: risk += 1
+        if bmi > 25: risk += 1
+        if family_history == "Yes": risk += 1
+        if risk == 0:
+            st.success("Low risk")
+        elif risk == 1:
+            st.warning("Moderate risk")
+        else:
+            st.error("High risk")
+
+elif tool == "Step Counter":
+    st.header("🚶 Step Counter")
+    steps = st.number_input("Enter today's step count:", min_value=0)
+    if st.button("Analyze"):
+        if steps < 5000:
+            st.warning("Low activity")
+        elif 5000 <= steps <= 10000:
+            st.success("Moderate activity")
+        else:
+            st.info("Highly active!")
+
+elif tool == "Stress Level Estimator":
+    st.header("🧘 Stress Level Estimator")
+    stress = st.slider("On a scale of 1 to 10, how stressed are you?", 1, 10)
+    if st.button("Check Stress Level"):
+        if stress <= 3:
+            st.success("Low stress – You're doing great!")
+        elif stress <= 7:
+            st.warning("Moderate stress – Take breaks.")
+        else:
+            st.error("High stress – Consider relaxation techniques.")
+
+elif tool == "Vision Check":
+    st.header("👁️ Vision Check")
+    st.write("Try this at home: Can you read the smallest line clearly from 6 feet away?")
+    if st.button("Yes, I can"):
+        st.success("Good vision!")
+    elif st.button("No, I cannot"):
+        st.warning("Consider getting your eyes checked.")
+
