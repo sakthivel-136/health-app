@@ -13,43 +13,41 @@ import random
 # Set page config
 st.set_page_config(page_title="🯪 Health Checker", layout="wide")
 
-# Initialize session state variable for chat visibility
-if "chat_visible" not in st.session_state:
-    st.session_state.chat_visible = False
+# Session state toggle via URL
+query_params = st.query_params
+toggle_chat = query_params.get("chat", ["false"])[0] == "true"
+st.session_state.chat_visible = toggle_chat
 
-# Floating Button that toggles chat in-place
-chat_button_clicked = st.button("💬", key="toggle_chat", help="Toggle Chatbox")
-
-# Toggle logic without page reload
-if chat_button_clicked:
-    st.session_state.chat_visible = not st.session_state.chat_visible
-
-# Custom CSS for floating button
-st.markdown("""
-    <style>
-    div[data-testid="stButton"] > button {
-        position: fixed;
-        top: 40%;
-        right: 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
-        text-align: center;
-        line-height: 60px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-        z-index: 9999;
-        transition: transform 0.3s ease-in-out;
-        cursor: pointer;
-    }
-    div[data-testid="stButton"] > button:hover {
-        transform: scale(1.1);
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Floating Button + Toggle logic
+floating_button_html = f"""
+<style>
+.floating-btn {{
+    position: fixed;
+    top: 40%;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    text-align: center;
+    line-height: 60px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: transform 0.3s ease-in-out;
+    cursor: pointer;
+}}
+.floating-btn:hover {{
+    transform: scale(1.1);
+}}
+</style>
+<a href='?chat={("false" if st.session_state.chat_visible else "true")}'>
+<div class='floating-btn'>💬</div>
+</a>
+"""
+st.markdown(floating_button_html, unsafe_allow_html=True)
 
 # App layout
 left, center, right = st.columns([1, 2, 3])
@@ -83,7 +81,7 @@ with right:
         """, unsafe_allow_html=True)
 
     elif tool == "BMI Calculator":
-        st.header("🧲 BMI Calculator")
+        st.header("🮢 BMI Calculator")
         height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
         weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
         if st.button("Calculate BMI"):
@@ -99,33 +97,7 @@ with right:
                 else:
                     st.error("You are obese.")
 
-    elif tool == "Blood Pressure Checker":
-        st.header("🧰 Blood Pressure Checker")
-        systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
-        diastolic = st.number_input("Enter Diastolic (lower) value:", min_value=0)
-        if st.button("Check BP"):
-            if systolic < 90 or diastolic < 60:
-                st.warning("Low Blood Pressure (Hypotension)")
-            elif 90 <= systolic <= 120 and 60 <= diastolic <= 80:
-                st.success("Normal Blood Pressure")
-            elif 120 < systolic <= 139 or 80 < diastolic <= 89:
-                st.warning("Prehypertension")
-            else:
-                st.error("High Blood Pressure (Hypertension)")
-
-    elif tool == "Hydration Checker":
-        st.header("💧 Hydration Checker")
-        water_intake = st.number_input("Water intake today (in liters):", min_value=0.0, format="%.2f")
-        weight = st.number_input("Your weight (in kg):", min_value=0.0, format="%.2f")
-        if st.button("Check Hydration"):
-            recommended = weight * 0.033
-            st.info(f"Recommended: {recommended:.2f} L/day")
-            if water_intake >= recommended:
-                st.success("You're well hydrated!")
-            else:
-                st.warning("You need to drink more water.")
-
-# Chat assistant questions per tool
+# Questions per tool
 chat_data = {
     "BMI Calculator": [
         "What is BMI?", "Is my BMI healthy?", "How can I reduce BMI?",
@@ -158,18 +130,70 @@ chat_data = {
     "Step Counter": [
         "How many steps a day is ideal?", "Is walking enough exercise?", "Do steps burn calories?",
         "What if I don’t reach 10k steps?", "How to increase step count?"
-    ],
-    "Stress Level Estimator": [
-        "What causes stress?", "How to manage stress?", "Does exercise reduce stress?",
-        "Signs of chronic stress?", "Can stress affect health?"
-    ],
-    "Vision Check": [
-        "How often to test vision?", "What is 6/6 vision?", "Does screen time affect eyes?",
-        "What are signs of eye strain?", "How to keep eyes healthy?"
     ]
 }
 
-# Floating Chatbox (animated on right side middle)
+# Real answers
+chat_answers = {
+    "BMI Calculator": {
+        "What is BMI?": "BMI is a measure of body fat based on height and weight.",
+        "Is my BMI healthy?": "A BMI between 18.5 and 24.9 is considered healthy.",
+        "How can I reduce BMI?": "Exercise regularly and maintain a balanced diet.",
+        "What BMI range is overweight?": "A BMI between 25 and 29.9 is classified as overweight.",
+        "Is BMI same for all ages?": "No, BMI interpretations may vary by age and gender."
+    },
+    "Blood Pressure Checker": {
+        "What is normal BP?": "Normal BP is around 120/80 mmHg.",
+        "What causes high BP?": "Stress, salt, inactivity, and genetics can cause high BP.",
+        "Is low BP dangerous?": "Very low BP can cause fainting and shock.",
+        "How to control BP?": "Reduce salt, exercise, and follow a healthy lifestyle.",
+        "Is 130/90 high?": "It is considered elevated and may require monitoring."
+    },
+    "Hydration Checker": {
+        "How much water should I drink?": "Roughly 2-3 liters/day depending on body size.",
+        "Is 5L too much?": "5L can be excessive unless in high-activity or hot climates.",
+        "Why hydration matters?": "It helps regulate body temperature and function.",
+        "Does weather affect water need?": "Yes, hot weather increases fluid needs.",
+        "Can I drink too much water?": "Yes, excessive water can dilute electrolytes."
+    },
+    "Workout Calorie Estimator": {
+        "How many calories does running burn?": "Running can burn 300-600 calories in 30 minutes depending on speed and weight.",
+        "Which workout burns more?": "HIIT and cardio usually burn more calories.",
+        "Is 30min workout enough?": "Yes, if done consistently and intensely.",
+        "How do I calculate calories?": "Use METs formula: MET x weight x time.",
+        "What factors affect calorie burn?": "Age, weight, intensity, duration, and metabolism."
+    },
+    "Heart Rate Monitor": {
+        "What is normal heart rate?": "A normal resting heart rate for adults ranges from 60 to 100 BPM.",
+        "How does stress affect BPM?": "Stress triggers adrenaline release, increasing BPM.",
+        "Can exercise increase BPM?": "Yes, and that's healthy as it strengthens the heart.",
+        "When is high BPM dangerous?": "BPM over 100 at rest may need medical attention.",
+        "Is low BPM good?": "Yes, especially for athletes, but too low needs checking."
+    },
+    "Sleep Tracker": {
+        "How much sleep is enough?": "Adults need 7-9 hours per night.",
+        "Why do I oversleep?": "Oversleeping may be due to poor quality sleep or health issues.",
+        "Does screen time affect sleep?": "Yes, it reduces melatonin and delays sleep onset.",
+        "Can naps help?": "Short naps boost energy, but long ones disrupt sleep cycle.",
+        "Tips for better sleep?": "Maintain routine, avoid screens before bed, reduce caffeine."
+    },
+    "Diabetes Risk Checker": {
+        "What are early signs of diabetes?": "Frequent urination, thirst, hunger, fatigue, blurred vision.",
+        "How does BMI relate to diabetes?": "High BMI is a major risk factor for Type 2 diabetes.",
+        "Is diabetes genetic?": "Yes, family history increases the risk.",
+        "Can diet reduce risk?": "Yes, balanced diet lowers diabetes risk.",
+        "What tests check diabetes?": "Fasting glucose, HbA1c, oral glucose tolerance test."
+    },
+    "Step Counter": {
+        "How many steps a day is ideal?": "10,000 steps/day is a common goal for good health.",
+        "Is walking enough exercise?": "Yes, if done briskly and consistently.",
+        "Do steps burn calories?": "Yes, about 40-60 calories per 1000 steps.",
+        "What if I don’t reach 10k steps?": "Any movement helps. Increase gradually.",
+        "How to increase step count?": "Take stairs, walk during breaks, set reminders."
+    }
+}
+
+# Floating Chatbox
 if st.session_state.chat_visible:
     st.markdown("""
         <style>
@@ -177,14 +201,13 @@ if st.session_state.chat_visible:
             position: fixed;
             top: 30%;
             right: 90px;
-           background-color: rgba(255, 255, 255, 0.05);  /* almost transparent */
-backdrop-filter: blur(6px);  /* modern glass effect */
-border: 1px solid rgba(255, 255, 255, 0.2);
-border-radius: 15px;
-padding: 15px;
-width: 300px;
-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
-
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            width: 300px;
+            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
             z-index: 9999;
             animation: slideIn 0.5s ease-out;
         }
@@ -194,15 +217,17 @@ box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
             to { right: 90px; opacity: 1; }
         }
         </style>
-       
+        <div class='floating-chatbox'>
     """, unsafe_allow_html=True)
 
     st.markdown(f"<h4>🧠 Chat Assistant</h4><p>Ask me anything about <b>{tool}</b></p>", unsafe_allow_html=True)
 
     if tool != "None":
-        question = st.selectbox("Choose a question:", chat_data.get(tool, []))
+        question_list = chat_data.get(tool, [])
+        selected_question = st.selectbox("Choose a question:", question_list)
         if st.button("Ask", key="ask_chat"):
-            st.info(f"Answer: {random.choice(['Great question!', 'Let me explain...', 'Here’s what you need to know:', 'Sure!', 'Of course!'])} {question}")
+            answer = chat_answers.get(tool, {}).get(selected_question, "Hmm... I'm still learning about that. Please try another question!")
+            st.info(f"**Answer:** {answer}")
     else:
         st.write("No tool selected.")
 
