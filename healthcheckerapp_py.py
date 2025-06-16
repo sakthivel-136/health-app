@@ -11,11 +11,10 @@ mkdir .streamlit
 api_key = "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"
 
 
-import streamlit as st
 import openai
+import streamlit as st
 
-# Load API Key securely
-openai.api_key = st.secrets["openai"]["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"]
+openai.api_key = st.secrets["openai"]["api_key"]
 
 st.set_page_config(page_title="Health GPT Chatbot", layout="centered")
 
