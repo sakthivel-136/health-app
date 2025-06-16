@@ -7,15 +7,32 @@ Original file is located at
     https://colab.research.google.com/drive/1HF3HtWcbGulDItoUdLITLyXfq1P2dbK5
 """
 import streamlit as st
-import os
 import openai
+import os
+import re
+from dotenv import load_dotenv
 
+# 🔒 Create .env file if it doesn't exist
+if not os.path.exists(".env"):
+    api_key = st.text_input("Enter your OpenAI API key:", type="password")
+    if api_key:
+        with open(".env", "w") as f:
+            f.write(f"OPENAI_API_KEY={api_key.strip()}\n")
+        st.success("✅ .env file created successfully. Please rerun the app.")
+        st.stop()
+
+# Load API Key from .env
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Streamlit Page Config
+if not openai.api_key:
+    st.error("❌ OPENAI_API_KEY not found in .env. Please enter it above.")
+    st.stop()
+
+# Set page config
 st.set_page_config(page_title="Health Checker", layout="centered")
 
-# Custom CSS
+# Custom CSS for floating chat button and chatbox
 st.markdown("""
 <style>
 .chat-button {
@@ -53,164 +70,96 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Session state init
+# Chat state
 if "show_chat" not in st.session_state:
     st.session_state.show_chat = False
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Floating button (non-functional visual)
-st.markdown('<div class="chat-button">💬</div>', unsafe_allow_html=True)
-
-# Toggle chat visibility
-clicked = st.button("💬", key="chat_toggle", help="Open Chatbot", use_container_width=False)
-if clicked:
+# Floating chat button
+if st.button("💬", key="chat_toggle", help="Open Chatbot"):
     st.session_state.show_chat = not st.session_state.show_chat
 
-# Local logic handlers (10 options simplified for now)
-def handle_bmi(msg):
-    h = re.search(r'(\d+\.?\d*)\s*(m|meter)', msg)
-    w = re.search(r'(\d+\.?\d*)\s*(kg|kilogram)', msg)
-    if h and w:
-        height = float(h.group(1))
-        weight = float(w.group(1))
-        bmi = weight / (height ** 2)
-        if bmi < 18.5:
-            return f"Your BMI is {bmi:.2f}. You're underweight."
-        elif bmi < 25:
-            return f"Your BMI is {bmi:.2f}. Normal range!"
-        elif bmi < 30:
-            return f"Your BMI is {bmi:.2f}. Overweight."
-        else:
-            return f"Your BMI is {bmi:.2f}. Obese."
-    return "Please mention height (in meters) and weight (in kg)."
+st.markdown('<div class="chat-button">💬</div>', unsafe_allow_html=True)
 
-def handle_hydration(msg):
-    water = re.search(r'(\d+\.?\d*)\s*(l|liter)', msg)
-    weight = re.search(r'(\d+\.?\d*)\s*(kg|kilogram)', msg)
-    if water and weight:
-        l = float(water.group(1))
-        w = float(weight.group(1))
-        req = w * 0.033
-        if l >= req:
-            return f"You drank {l}L. Required: {req:.2f}L. You're hydrated!"
-        else:
-            return f"You drank {l}L. Required: {req:.2f}L. Drink more!"
-    return "Tell me how much water you drank and your weight."
-
-def handle_steps(msg):
-    steps = re.search(r'(\d+)\s*(steps)', msg)
-    if steps:
-        count = int(steps.group(1))
-        if count < 5000:
-            return "Try to walk more!"
-        elif count < 10000:
-            return "Good job, keep going!"
-        else:
-            return "Awesome! You're very active!"
-    return "Mention your step count."
-
-def handle_sleep(msg):
-    hrs = re.search(r'(\d+)\s*(hours|hrs)', msg)
-    if hrs:
-        h = int(hrs.group(1))
-        if h < 6:
-            return "You need more sleep!"
-        elif h <= 8:
-            return "Great! You slept well."
-        else:
-            return "Too much sleep may affect productivity."
-    return "Tell me how many hours you slept."
-
-def handle_calories(msg):
-    cals = re.search(r'(\d+)\s*(kcal|calories)', msg)
-    if cals:
-        cal = int(cals.group(1))
-        if cal < 1500:
-            return "Low calorie intake today!"
-        elif cal < 2500:
-            return "You're on track!"
-        else:
-            return "Too many calories today!"
-    return "Mention your calorie intake."
-
-def handle_heart_rate(msg):
-    bpm = re.search(r'(\d+)\s*(bpm)', msg)
-    if bpm:
-        rate = int(bpm.group(1))
-        if 60 <= rate <= 100:
-            return f"Your heart rate ({rate} bpm) is normal."
-        else:
-            return f"Your heart rate is {rate} bpm. Consult a doctor if unusual."
-    return "Mention your heart rate in bpm."
-
-def handle_blood_pressure(msg):
-    bp = re.search(r'(\d{2,3})/(\d{2,3})', msg)
-    if bp:
-        sys, dia = int(bp.group(1)), int(bp.group(2))
-        if sys < 120 and dia < 80:
-            return "Your BP is normal."
-        elif sys < 140 or dia < 90:
-            return "Prehypertension. Monitor regularly."
-        else:
-            return "High BP. Consult a doctor!"
-    return "Mention your BP like 120/80."
-
-def handle_stress(msg):
-    if "stress" in msg or "anxious" in msg:
-        return "Try deep breathing, meditation, or take a short walk."
-    return ""
-
-def handle_mood(msg):
-    if "happy" in msg:
-        return "Great! Stay positive!"
-    elif "sad" in msg or "down" in msg:
-        return "Everything will be okay. Stay strong 💪"
-    return ""
-
-def handle_exercise(msg):
-    if "exercise" in msg or "workout" in msg:
-        return "Exercising is a great habit. Aim for 30 mins daily!"
-    return ""
-
-# Chatbox logic
+# Chatbox UI
 if st.session_state.show_chat:
     st.markdown('<div class="chatbox">', unsafe_allow_html=True)
-    st.subheader("🤖 GPT + Health Assistant")
+    st.subheader("🤖 Ask me something!")
 
-    user_input = st.text_input("Ask me a question...")
+    user_input = st.text_input("Type your question here...")
 
+    def handle_bmi(q):
+        h = re.search(r'(\d+\.?\d*)\s*(m|meter)', q)
+        w = re.search(r'(\d+\.?\d*)\s*(kg|kilogram)', q)
+        if h and w:
+            height = float(h.group(1))
+            weight = float(w.group(1))
+            bmi = weight / (height ** 2)
+            if bmi < 18.5:
+                return f"Your BMI is {bmi:.2f}, which means you are underweight."
+            elif bmi < 25:
+                return f"Your BMI is {bmi:.2f}, which is considered normal."
+            elif bmi < 30:
+                return f"Your BMI is {bmi:.2f}, which indicates overweight."
+            else:
+                return f"Your BMI is {bmi:.2f}, you are obese."
+        return "Mention height (in meters) and weight (in kg) to calculate BMI."
+
+    def handle_hydration(q):
+        water = re.search(r'(\d+\.?\d*)\s*(l|liter)', q)
+        weight = re.search(r'(\d+\.?\d*)\s*(kg|kilogram)', q)
+        if water and weight:
+            l = float(water.group(1))
+            w = float(weight.group(1))
+            req = w * 0.033
+            if l >= req:
+                return f"You drank {l}L. Required: {req:.2f}L. You're hydrated!"
+            else:
+                return f"You drank {l}L. Required: {req:.2f}L. Not enough!"
+        return "Tell me how much water you drank and your weight."
+
+    def handle_steps(q):
+        steps = re.search(r'(\d+)\s*(steps)', q)
+        if steps:
+            count = int(steps.group(1))
+            if count < 5000:
+                return "You need more steps!"
+            elif count < 10000:
+                return "Nice! Moderate activity!"
+            else:
+                return "Awesome! Very active!"
+        return "Please mention your step count."
+
+    def handle_chatgpt(q):
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a health assistant that helps with BMI, hydration, and fitness."},
+                    {"role": "user", "content": q}
+                ]
+            )
+            return completion['choices'][0]['message']['content']
+        except Exception as e:
+            return f"⚠️ Error: {str(e)}"
+
+    # Chat handling logic
     if user_input:
-        user_msg = user_input.lower()
-        response = ""
+        msg = user_input.lower()
+        if "bmi" in msg or ("height" in msg and "weight" in msg):
+            response = handle_bmi(msg)
+        elif "water" in msg or "hydrated" in msg:
+            response = handle_hydration(msg)
+        elif "steps" in msg or "walk" in msg:
+            response = handle_steps(msg)
+        else:
+            response = handle_chatgpt(user_input)
 
-        # Try local handlers first
-        for handler in [handle_bmi, handle_hydration, handle_steps, handle_sleep,
-                        handle_calories, handle_heart_rate, handle_blood_pressure,
-                        handle_stress, handle_mood, handle_exercise]:
-            response = handler(user_msg)
-            if response:
-                break
-
-        # If no local handler matches, fallback to OpenAI
-        if not response:
-            try:
-                completion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful health assistant that answers questions about fitness, hydration, sleep, nutrition, and mental well-being."},
-                        {"role": "user", "content": user_input}
-                    ]
-                )
-                response = completion['choices'][0]['message']['content']
-            except Exception as e:
-                response = f"⚠️ Error contacting GPT: {str(e)}"
-
-        # Update chat history
         st.session_state.chat_history.append(("You", user_input))
         st.session_state.chat_history.append(("Bot", response))
 
-    # Show chat history
+    # Display chat history
     for sender, msg in st.session_state.chat_history[::-1]:
         st.markdown(f"**{sender}:** {msg}")
 
