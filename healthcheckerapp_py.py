@@ -7,7 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1HF3HtWcbGulDItoUdLITLyXfq1P2dbK5
 """
 import streamlit as st
-import streamlit.components.v1 as components
 import random
 
 # Set page config
@@ -18,38 +17,8 @@ if "chat_visible" not in st.session_state:
     st.session_state.chat_visible = False
 
 # Floating Button (no page reload)
-st.markdown("""
-<style>
-.floating-btn {
-    position: fixed;
-    top: 40%;
-    right: 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-    text-align: center;
-    line-height: 60px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-    z-index: 9999;
-    transition: transform 0.3s ease-in-out;
-    cursor: pointer;
-}
-.floating-btn:hover {
-    transform: scale(1.1);
-}
-</style>
-""", unsafe_allow_html=True)
-
-if st.button("💬", key="chat_button"):
+if st.button("💬 Toggle Chat", key="chat_button"):
     st.session_state.chat_visible = not st.session_state.chat_visible
-
-st.markdown("""
-<div class='floating-btn' onclick="document.querySelector('[data-testid=\"stButton\"] button').click()">💬</div>
-""", unsafe_allow_html=True)
 
 # App layout
 left, center, right = st.columns([1, 2, 3])
@@ -99,7 +68,6 @@ with right:
                 else:
                     st.error("You are obese.")
 
-# Tool placeholders for remaining tools
     elif tool == "Blood Pressure Checker":
         st.header("🧰 Blood Pressure Checker")
         systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
@@ -128,7 +96,14 @@ with right:
 
     elif tool == "Workout Calorie Estimator":
         st.header("🏃 Workout Calorie Estimator")
-        st.write("Estimate your calorie burn based on your activity.")
+        activity = st.selectbox("Select activity:", ["Running", "Cycling", "Walking", "Jumping Rope"])
+        duration = st.number_input("Duration (minutes):", min_value=0)
+        weight = st.number_input("Your weight (kg):", min_value=0.0, format="%.2f")
+        if st.button("Estimate Calories"):
+            met_values = {"Running": 9.8, "Cycling": 7.5, "Walking": 3.8, "Jumping Rope": 12.3}
+            met = met_values.get(activity, 1)
+            calories_burned = (met * 3.5 * weight / 200) * duration
+            st.success(f"You burned approximately {calories_burned:.2f} calories.")
 
     elif tool == "Heart Rate Monitor":
         st.header("❤️ Heart Rate Monitor")
@@ -143,108 +118,85 @@ with right:
 
     elif tool == "Sleep Tracker":
         st.header("🛌 Sleep Tracker")
-        st.write("Track your daily sleep pattern and get tips.")
+        hours = st.slider("How many hours did you sleep last night?", 0, 12, 7)
+        if st.button("Evaluate Sleep"):
+            if hours < 6:
+                st.warning("You should try to get more rest.")
+            elif 6 <= hours <= 8:
+                st.success("Great! You're getting enough sleep.")
+            else:
+                st.info("Too much sleep can also affect health. Balance is key!")
 
     elif tool == "Diabetes Risk Checker":
         st.header("🧪 Diabetes Risk Checker")
-        st.write("Assess your risk based on common indicators.")
+        age = st.number_input("Enter your age:", min_value=0)
+        bmi = st.number_input("Enter your BMI:", min_value=0.0, format="%.1f")
+        family_history = st.radio("Family history of diabetes?", ["Yes", "No"])
+        if st.button("Check Risk"):
+            risk_score = 0
+            if age >= 45: risk_score += 1
+            if bmi >= 25: risk_score += 1
+            if family_history == "Yes": risk_score += 1
+
+            if risk_score == 0:
+                st.success("Low risk of diabetes.")
+            elif risk_score == 1:
+                st.info("Moderate risk. Consider lifestyle improvements.")
+            else:
+                st.error("High risk. Consider consulting a doctor.")
 
     elif tool == "Step Counter":
         st.header("🚶 Step Counter")
-        st.write("Keep count of your daily steps.")
+        steps = st.number_input("Enter number of steps walked today:", min_value=0)
+        if st.button("Evaluate Steps"):
+            if steps < 5000:
+                st.warning("Try to walk more. Aim for at least 5000 steps.")
+            elif 5000 <= steps < 10000:
+                st.success("Good job! You're moderately active.")
+            else:
+                st.info("Excellent! Very active lifestyle.")
 
     elif tool == "Stress Level Estimator":
         st.header("😰 Stress Level Estimator")
-        st.write("Understand your stress levels through simple inputs.")
+        mood = st.slider("Rate your mood today (1=Low, 10=High):", 1, 10, 5)
+        if st.button("Check Stress"):
+            if mood <= 3:
+                st.error("High stress. Consider taking a break or meditating.")
+            elif 4 <= mood <= 7:
+                st.warning("Moderate stress. Stay mindful and take care.")
+            else:
+                st.success("Low stress! Keep up the positivity.")
 
     elif tool == "Vision Check":
         st.header("👁️ Vision Check")
-        st.write("Basic self-assessment for eye health.")
+        screen_time = st.slider("Hours of screen time today:", 0, 12, 6)
+        if st.button("Evaluate Vision Stress"):
+            if screen_time < 4:
+                st.success("Your eyes are doing well!")
+            elif 4 <= screen_time <= 8:
+                st.warning("Take frequent breaks to reduce eye strain.")
+            else:
+                st.error("High screen time! Practice the 20-20-20 rule.")
 
-# Chat assistant questions per tool
-chat_data = {
-    "BMI Calculator": [
-        "What is BMI?", "Is my BMI healthy?", "How can I reduce BMI?",
-        "What BMI range is overweight?", "Is BMI same for all ages?"
-    ],
-    "Blood Pressure Checker": [
-        "What is normal BP?", "What causes high BP?", "Is low BP dangerous?",
-        "How to control BP?", "Is 130/90 high?"
-    ],
-    "Hydration Checker": [
-        "How much water should I drink?", "Is 5L too much?", "Why hydration matters?",
-        "Does weather affect water need?", "Can I drink too much water?"
-    ],
-    "Workout Calorie Estimator": [
-        "How many calories does running burn?", "Which workout burns more?",
-        "Is 30min workout enough?", "How do I calculate calories?", "What factors affect calorie burn?"
-    ],
-    "Heart Rate Monitor": [
-        "What is normal heart rate?", "How does stress affect BPM?", "Can exercise increase BPM?",
-        "When is high BPM dangerous?", "Is low BPM good?"
-    ],
-    "Sleep Tracker": [
-        "How much sleep is enough?", "Why do I oversleep?", "Does screen time affect sleep?",
-        "Can naps help?", "Tips for better sleep?"
-    ],
-    "Diabetes Risk Checker": [
-        "What are early signs of diabetes?", "How does BMI relate to diabetes?",
-        "Is diabetes genetic?", "Can diet reduce risk?", "What tests check diabetes?"
-    ],
-    "Step Counter": [
-        "How many steps a day is ideal?", "Is walking enough exercise?", "Do steps burn calories?",
-        "What if I don’t reach 10k steps?", "How to increase step count?"
-    ],
-    "Stress Level Estimator": [
-        "What causes stress?", "How to manage stress?", "Does exercise reduce stress?",
-        "Signs of chronic stress?", "Can stress affect health?"
-    ],
-    "Vision Check": [
-        "How often to test vision?", "What is 6/6 vision?", "Does screen time affect eyes?",
-        "What are signs of eye strain?", "How to keep eyes healthy?"
-    ]
-}
-
-chat_answers = {
-    tool: {q: f"This is a helpful answer for: {q}" for q in qs} for tool, qs in chat_data.items()
-}
-
-# Floating Chatbox
+# Chat Panel
 if st.session_state.chat_visible:
-    st.markdown("""
-        <style>
-        .floating-chatbox {
-            position: fixed;
-            top: 30%;
-            right: 90px;
-            background-color: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 15px;
-            width: 300px;
-            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
-            z-index: 9999;
-            animation: slideIn 0.5s ease-out;
-        }
+    st.markdown("---")
+    st.subheader("Ask me anything about Health")
+    question = st.selectbox("Choose a question:", [
+        "How does stress affect BPM?",
+        "How much water should I drink per day?",
+        "What is a healthy BMI range?",
+        "How much sleep is enough?",
+        "Why are steps important daily?"
+    ])
 
-        @keyframes slideIn {
-            from { right: -350px; opacity: 0; }
-            to { right: 90px; opacity: 1; }
-        }
-        </style>
-        <div class='floating-chatbox'>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"<h4>🧠 Chat Assistant</h4><p>Ask me anything about <b>{tool}</b></p>", unsafe_allow_html=True)
-
-    if tool != "None":
-        question_list = chat_data.get(tool, [])
-        selected_question = st.selectbox("Choose a question:", question_list)
-        if st.button("Ask", key="ask_chat"):
-            answer = chat_answers.get(tool, {}).get(selected_question, "Hmm... I'm still learning about that. Please try another question!")
-            st.info(f"**Answer:** {answer}")
-    else:
-        st.write("No tool selected.")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    if question == "How does stress affect BPM?":
+        st.info("Stress can increase your BPM due to adrenaline. Try mindfulness or deep breathing.")
+    elif question == "How much water should I drink per day?":
+        st.info("About 2.7L for women and 3.7L for men is ideal, but it depends on weight and activity.")
+    elif question == "What is a healthy BMI range?":
+        st.info("A healthy BMI range is between 18.5 and 24.9.")
+    elif question == "How much sleep is enough?":
+        st.info("Adults should get 7–9 hours of sleep per night.")
+    elif question == "Why are steps important daily?":
+        st.info("Walking helps cardiovascular health, burns calories, and boosts mood.")
