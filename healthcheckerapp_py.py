@@ -10,27 +10,85 @@ Original file is located at
 
 import streamlit as st
 
-# Title
-st.title("BMI Calculator")
+import streamlit as st
 
-# Inputs
-height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
-weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
+# Set the page config
+st.set_page_config(page_title="Health Checker", layout="centered")
 
-# Calculate Button
-if st.button("Calculate BMI"):
-    if height > 0:
-        bmi = weight / (height ** 2)
-        st.success(f"Your BMI is: {bmi:.2f}")
-        
-        # BMI Category
-        if bmi < 18.5:
-            st.info("You are underweight.")
-        elif 18.5 <= bmi < 24.9:
-            st.success("You have a normal weight.")
-        elif 25 <= bmi < 29.9:
-            st.warning("You are overweight.")
+# Centered main heading
+st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Health Checker</h1>", unsafe_allow_html=True)
+
+# Sidebar with options
+option = st.sidebar.radio(
+    "Choose a Health Tool",
+    ("BMI Calculator", "Blood Pressure Checker", "Hydration Checker", "Workout Calories Estimator")
+)
+
+# BMI Calculator
+if option == "BMI Calculator":
+    st.header("🧮 BMI Calculator")
+    height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
+    weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
+
+    if st.button("Calculate BMI"):
+        if height > 0:
+            bmi = weight / (height ** 2)
+            st.success(f"Your BMI is: {bmi:.2f}")
+            if bmi < 18.5:
+                st.info("You are underweight.")
+            elif 18.5 <= bmi < 24.9:
+                st.success("You have a normal weight.")
+            elif 25 <= bmi < 29.9:
+                st.warning("You are overweight.")
+            else:
+                st.error("You are obese.")
         else:
-            st.error("You are obese.")
-    else:
-        st.error("Height must be greater than 0.")
+            st.error("Height must be greater than 0.")
+
+# Blood Pressure Checker
+elif option == "Blood Pressure Checker":
+    st.header("🩺 Blood Pressure Checker")
+    systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
+    diastolic = st.number_input("Enter Diastolic (lower) value:", min_value=0)
+
+    if st.button("Check BP"):
+        if systolic < 90 or diastolic < 60:
+            st.warning("Low Blood Pressure (Hypotension)")
+        elif 90 <= systolic <= 120 and 60 <= diastolic <= 80:
+            st.success("Normal Blood Pressure")
+        elif 120 < systolic <= 139 or 80 < diastolic <= 89:
+            st.warning("Prehypertension")
+        else:
+            st.error("High Blood Pressure (Hypertension)")
+
+# Hydration Checker
+elif option == "Hydration Checker":
+    st.header("💧 Are You Hydrated?")
+    water_intake = st.number_input("Enter water intake today (in liters):", min_value=0.0, format="%.2f")
+    weight = st.number_input("Enter your weight (in kg):", min_value=0.0, format="%.2f")
+
+    if st.button("Check Hydration"):
+        recommended = weight * 0.033
+        st.info(f"Recommended: {recommended:.2f} L/day")
+        if water_intake >= recommended:
+            st.success("You're well hydrated!")
+        else:
+            st.warning("You need to drink more water.")
+
+# Workout Calories Estimator
+elif option == "Workout Calories Estimator":
+    st.header("🏋️ Workout Calorie Burn Estimator")
+    activity = st.selectbox("Select your workout", ["Running", "Cycling", "Walking", "Yoga", "Weight Training"])
+    duration = st.number_input("Enter duration in minutes:", min_value=1)
+
+    calorie_burn_rate = {
+        "Running": 10,
+        "Cycling": 8,
+        "Walking": 4,
+        "Yoga": 3,
+        "Weight Training": 6
+    }
+
+    if st.button("Estimate Calories Burned"):
+        burned = duration * calorie_burn_rate[activity]
+        st.success(f"You have burned approximately {burned} calories by {activity.lower()} for {duration} minutes.")
