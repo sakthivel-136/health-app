@@ -177,11 +177,14 @@ if st.session_state.chat_visible:
             position: fixed;
             top: 30%;
             right: 90px;
-            background-color: #fefefe;
-            border-radius: 15px;
-            padding: 20px;
-            width: 300px;
-            box-shadow: 2px 2px 12px rgba(0,0,0,0.3);
+           background-color: rgba(255, 255, 255, 0.05);  /* almost transparent */
+backdrop-filter: blur(6px);  /* modern glass effect */
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 15px;
+padding: 15px;
+width: 300px;
+box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+
             z-index: 9999;
             animation: slideIn 0.5s ease-out;
         }
