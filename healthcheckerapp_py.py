@@ -22,7 +22,7 @@ chat_btn_style = """
     <style>
     .floating-btn {
         position: fixed;
-        bottom: 20px;
+        top: 40%;
         right: 20px;
         background-color: #4CAF50;
         color: white;
@@ -158,13 +158,13 @@ chat_data = {
     ]
 }
 
-# Floating Chatbox (bottom right)
+# Floating Chatbox (right side middle)
 if st.session_state.chat_visible:
     st.markdown("""
         <style>
         .floating-chatbox {
             position: fixed;
-            bottom: 90px;
+            top: 30%;
             right: 20px;
             background-color: #fefefe;
             border-radius: 15px;
