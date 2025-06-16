@@ -18,6 +18,25 @@ if "chat_visible" not in st.session_state:
 
 # Chat button toggle
 chat_button = "💬"
+chat_btn_style = """
+    <style>
+    .floating-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        z-index: 9999;
+    }
+    </style>
+"""
+st.markdown(chat_btn_style, unsafe_allow_html=True)
 if st.button(chat_button, key="toggle_chat", help="Chat with assistant"):
     st.session_state.chat_visible = not st.session_state.chat_visible
 
@@ -34,12 +53,14 @@ with center:
 
 # Sidebar (left column) - tool selection
 with left:
-    st.markdown("## 🧰 Tools")
+    st.markdown("<h2 style='margin-bottom:10px;'>🧰 Tools</h2>", unsafe_allow_html=True)
+    st.markdown("<div style='padding-left: 10px;'>", unsafe_allow_html=True)
     tool = st.radio("Select a health tool:", [
         "None", "BMI Calculator", "Blood Pressure Checker", "Hydration Checker",
         "Workout Calorie Estimator", "Heart Rate Monitor", "Sleep Tracker",
         "Diabetes Risk Checker", "Step Counter", "Stress Level Estimator", "Vision Check"
     ], index=0)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # Main content (right column)
 with right:
@@ -137,22 +158,32 @@ chat_data = {
     ]
 }
 
-# Modern chatbox UI (right side floating)
+# Floating Chatbox (bottom right)
 if st.session_state.chat_visible:
-    with st.sidebar:
-        st.markdown(f"""
+    st.markdown("""
         <style>
-        .chatbox {{ background-color: #f1f1f1; border-radius: 10px; padding: 15px; }}
+        .floating-chatbox {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: #fefefe;
+            border-radius: 15px;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 2px 2px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
         </style>
-        <div class='chatbox'>
-        <h4>🧠 Chat Assistant</h4>
-        <p>Ask me anything about <b>{tool}</b></p>
-        </div>
-        """, unsafe_allow_html=True)
+        <div class='floating-chatbox'>
+    """, unsafe_allow_html=True)
 
-        if tool != "None":
-            question = st.selectbox("Choose a question:", chat_data.get(tool, []))
-            if st.button("Ask"):
-                st.info(f"Answer: {random.choice(['Great question!', 'Let me explain...', 'Here’s what you need to know:', 'Sure!', 'Of course!'])} {question}")
-        else:
-            st.write("No tool selected.")
+    st.markdown(f"<h4>🧠 Chat Assistant</h4><p>Ask me anything about <b>{tool}</b></p>", unsafe_allow_html=True)
+
+    if tool != "None":
+        question = st.selectbox("Choose a question:", chat_data.get(tool, []))
+        if st.button("Ask", key="ask_chat"):
+            st.info(f"Answer: {random.choice(['Great question!', 'Let me explain...', 'Here’s what you need to know:', 'Sure!', 'Of course!'])} {question}")
+    else:
+        st.write("No tool selected.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
