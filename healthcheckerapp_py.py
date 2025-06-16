@@ -9,149 +9,81 @@ Original file is located at
 
 
 import streamlit as st
+import openai
 
-# Page settings
-st.set_page_config(page_title="Health Checker", layout="centered")
+# Load API Key securely
+openai.api_key = st.secrets["openai"]["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"]
 
-# Title
-st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Health Checker</h1>", unsafe_allow_html=True)
+st.set_page_config(page_title="Health GPT Chatbot", layout="centered")
 
-# Sidebar options
-tool = st.sidebar.selectbox(
-    "🩺 Choose a Health Tool",
-    ("None", "BMI Calculator", "Blood Pressure Checker", "Hydration Checker", "Workout Calorie Estimator",
-     "Heart Rate Monitor", "Sleep Tracker", "Diabetes Risk Checker", "Step Counter", "Stress Level Estimator", "Vision Check")
-)
+st.markdown("""
+<style>
+.chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.chatbox {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 360px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: white;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 15px;
+    z-index: 9998;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Handle the selected tool
-if tool == "None":
-    # Show moving motivational quote (marquee effect)
-    st.markdown("""
-        <marquee behavior="scroll" direction="left" scrollamount="6" style="color:#ff5722; font-size:24px; font-weight:bold;">
-            When the going gets rough, the tough gets going. Everyday I’m surviving just to keep on thriving.
-        </marquee>
-    """, unsafe_allow_html=True)
+if "show_chat" not in st.session_state:
+    st.session_state.show_chat = False
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-elif tool == "BMI Calculator":
-    st.header("🧮 BMI Calculator")
-    height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
-    weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
-    if st.button("Calculate BMI"):
-        if height > 0:
-            bmi = weight / (height ** 2)
-            st.success(f"Your BMI is: {bmi:.2f}")
-            if bmi < 18.5:
-                st.info("You are underweight.")
-            elif 18.5 <= bmi < 24.9:
-                st.success("You have a normal weight.")
-            elif 25 <= bmi < 29.9:
-                st.warning("You are overweight.")
-            else:
-                st.error("You are obese.")
-        else:
-            st.error("Height must be greater than 0.")
+clicked = st.button("💬", key="toggle_button")
+if clicked:
+    st.session_state.show_chat = not st.session_state.show_chat
 
-elif tool == "Blood Pressure Checker":
-    st.header("🩺 Blood Pressure Checker")
-    systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
-    diastolic = st.number_input("Enter Diastolic (lower) value:", min_value=0)
-    if st.button("Check BP"):
-        if systolic < 90 or diastolic < 60:
-            st.warning("Low Blood Pressure (Hypotension)")
-        elif 90 <= systolic <= 120 and 60 <= diastolic <= 80:
-            st.success("Normal Blood Pressure")
-        elif 120 < systolic <= 139 or 80 < diastolic <= 89:
-            st.warning("Prehypertension")
-        else:
-            st.error("High Blood Pressure (Hypertension)")
+st.markdown('<div class="chat-button">💬</div>', unsafe_allow_html=True)
 
-elif tool == "Hydration Checker":
-    st.header("💧 Hydration Checker")
-    water_intake = st.number_input("Water intake today (in liters):", min_value=0.0, format="%.2f")
-    weight = st.number_input("Your weight (in kg):", min_value=0.0, format="%.2f")
-    if st.button("Check Hydration"):
-        recommended = weight * 0.033
-        st.info(f"Recommended: {recommended:.2f} L/day")
-        if water_intake >= recommended:
-            st.success("You're well hydrated!")
-        else:
-            st.warning("You need to drink more water.")
+if st.session_state.show_chat:
+    st.markdown('<div class="chatbox">', unsafe_allow_html=True)
+    st.markdown("### 🤖 Health Chatbot")
 
-elif tool == "Workout Calorie Estimator":
-    st.header("🏋️ Workout Calorie Estimator")
-    activity = st.selectbox("Select workout", ["Running", "Cycling", "Walking", "Yoga", "Weight Training"])
-    duration = st.number_input("Duration in minutes:", min_value=1)
-    calorie_map = {"Running": 10, "Cycling": 8, "Walking": 4, "Yoga": 3, "Weight Training": 6}
-    if st.button("Estimate Calories Burned"):
-        burned = duration * calorie_map[activity]
-        st.success(f"Estimated: {burned} calories burned by {activity.lower()}.")
+    user_input = st.text_input("Ask your health question:")
 
-elif tool == "Heart Rate Monitor":
-    st.header("❤️ Heart Rate Monitor")
-    bpm = st.number_input("Enter your heart rate (BPM):", min_value=0)
-    if st.button("Analyze Heart Rate"):
-        if bpm < 60:
-            st.warning("Bradycardia (Slow Heart Rate)")
-        elif 60 <= bpm <= 100:
-            st.success("Normal Heart Rate")
-        else:
-            st.error("Tachycardia (Fast Heart Rate)")
+    if user_input:
+        st.session_state.chat_history.append(("You", user_input))
 
-elif tool == "Sleep Tracker":
-    st.header("😴 Sleep Tracker")
-    hours = st.slider("How many hours did you sleep last night?", 0, 12)
-    if st.button("Evaluate Sleep"):
-        if hours < 6:
-            st.warning("You need more sleep.")
-        elif 6 <= hours <= 8:
-            st.success("Good sleep!")
-        else:
-            st.info("Oversleeping isn't always good either!")
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful health assistant who answers questions about BMI, hydration, fitness, and wellness."},
+                    {"role": "user", "content": user_input}
+                ]
+            )
+            reply = response["choices"][0]["message"]["content"]
+        except Exception as e:
+            reply = f"⚠️ Error: {e}"
 
-elif tool == "Diabetes Risk Checker":
-    st.header("🧪 Diabetes Risk Checker")
-    age = st.number_input("Age", min_value=0)
-    bmi = st.number_input("BMI", min_value=0.0)
-    family_history = st.selectbox("Family History of Diabetes?", ["Yes", "No"])
-    if st.button("Check Risk"):
-        risk = 0
-        if age > 45: risk += 1
-        if bmi > 25: risk += 1
-        if family_history == "Yes": risk += 1
-        if risk == 0:
-            st.success("Low risk")
-        elif risk == 1:
-            st.warning("Moderate risk")
-        else:
-            st.error("High risk")
+        st.session_state.chat_history.append(("Bot", reply))
 
-elif tool == "Step Counter":
-    st.header("🚶 Step Counter")
-    steps = st.number_input("Enter today's step count:", min_value=0)
-    if st.button("Analyze"):
-        if steps < 5000:
-            st.warning("Low activity")
-        elif 5000 <= steps <= 10000:
-            st.success("Moderate activity")
-        else:
-            st.info("Highly active!")
+    for sender, message in reversed(st.session_state.chat_history):
+        st.markdown(f"**{sender}:** {message}")
 
-elif tool == "Stress Level Estimator":
-    st.header("🧘 Stress Level Estimator")
-    stress = st.slider("On a scale of 1 to 10, how stressed are you?", 1, 10)
-    if st.button("Check Stress Level"):
-        if stress <= 3:
-            st.success("Low stress – You're doing great!")
-        elif stress <= 7:
-            st.warning("Moderate stress – Take breaks.")
-        else:
-            st.error("High stress – Consider relaxation techniques.")
-
-elif tool == "Vision Check":
-    st.header("👁️ Vision Check")
-    st.write("Try this at home: Can you read the smallest line clearly from 6 feet away?")
-    if st.button("Yes, I can"):
-        st.success("Good vision!")
-    elif st.button("No, I cannot"):
-        st.warning("Consider getting your eyes checked.")
-
+    st.markdown('</div>', unsafe_allow_html=True)
