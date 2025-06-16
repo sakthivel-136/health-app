@@ -19,9 +19,9 @@ toggle_chat = query_params.get("chat", ["false"])[0] == "true"
 st.session_state.chat_visible = toggle_chat
 
 # Floating Button + Toggle logic
-st.markdown("""
+floating_button_html = f"""
 <style>
-.floating-btn {
+.floating-btn {{
     position: fixed;
     top: 40%;
     right: 20px;
@@ -38,16 +38,14 @@ st.markdown("""
     z-index: 9999;
     transition: transform 0.3s ease-in-out;
     cursor: pointer;
-}
-.floating-btn:hover {
+}}
+.floating-btn:hover {{
     transform: scale(1.1);
-}
+}}
 </style>
-
-<a href='?chat=%s'>
-    <div class='floating-btn'>💬</div>
-</a>
-""" % ("false" if st.session_state.chat_visible else "true"), unsafe_allow_html=True)
+<a href='?chat={("false" if st.session_state.chat_visible else "true")}'><div class='floating-btn'>💬</div></a>
+"""
+st.markdown(floating_button_html, unsafe_allow_html=True)
 
 # App layout
 left, center, right = st.columns([1, 2, 3])
