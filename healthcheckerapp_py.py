@@ -194,7 +194,7 @@ box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
             to { right: 90px; opacity: 1; }
         }
         </style>
-        <div class='floating-chatbox'>
+       
     """, unsafe_allow_html=True)
 
     st.markdown(f"<h4>🧠 Chat Assistant</h4><p>Ask me anything about <b>{tool}</b></p>", unsafe_allow_html=True)
