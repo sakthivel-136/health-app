@@ -26,7 +26,11 @@ left, center, right = st.columns([1, 2, 3])
 
 # Center title
 with center:
-    st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Health Checker</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='display: flex; justify-content: center;'>
+        <h1 style='color: #4CAF50;'>Health Checker</h1>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Sidebar (left column) - tool selection
 with left:
@@ -89,9 +93,6 @@ with right:
             else:
                 st.warning("You need to drink more water.")
 
-    # Other tools (same logic as before)
-    # ... (Truncated here for brevity. All other tools should be added same as BMI)
-
 # Chat assistant questions per tool
 chat_data = {
     "BMI Calculator": [
@@ -139,16 +140,16 @@ chat_data = {
 # Modern chatbox UI (right side floating)
 if st.session_state.chat_visible:
     with st.sidebar:
-        st.markdown("""
+        st.markdown(f"""
         <style>
-        .chatbox { background-color: #f1f1f1; border-radius: 10px; padding: 15px; }
+        .chatbox {{ background-color: #f1f1f1; border-radius: 10px; padding: 15px; }}
         </style>
         <div class='chatbox'>
         <h4>🧠 Chat Assistant</h4>
-        <p>Ask me anything about <b>{}</b></p>
+        <p>Ask me anything about <b>{tool}</b></p>
         </div>
-        """.format(tool), unsafe_allow_html=True)
-        
+        """, unsafe_allow_html=True)
+
         if tool != "None":
             question = st.selectbox("Choose a question:", chat_data.get(tool, []))
             if st.button("Ask"):
