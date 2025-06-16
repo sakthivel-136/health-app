@@ -14,7 +14,8 @@ import random
 st.set_page_config(page_title="🯪 Health Checker", layout="wide")
 
 # Session state toggle via URL
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
+
 toggle_chat = query_params.get("chat", ["false"])[0] == "true"
 st.session_state.chat_visible = toggle_chat
 
@@ -43,7 +44,9 @@ floating_button_html = f"""
     transform: scale(1.1);
 }}
 </style>
-<a href='?chat={("false" if st.session_state.chat_visible else "true")}'><div class='floating-btn'>💬</div></a>
+<a href='?chat={("false" if st.session_state.chat_visible else "true")}'>
+<div class='floating-btn'>💬</div>
+</a>
 """
 st.markdown(floating_button_html, unsafe_allow_html=True)
 
