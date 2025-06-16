@@ -33,6 +33,12 @@ chat_btn_style = """
         font-size: 30px;
         box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
         z-index: 9999;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .floating-btn:hover {
+        transform: scale(1.1);
+        cursor: pointer;
     }
     </style>
 """
@@ -158,20 +164,26 @@ chat_data = {
     ]
 }
 
-# Floating Chatbox (right side middle)
+# Floating Chatbox (animated on right side middle)
 if st.session_state.chat_visible:
     st.markdown("""
         <style>
         .floating-chatbox {
             position: fixed;
             top: 30%;
-            right: 20px;
+            right: 90px;
             background-color: #fefefe;
             border-radius: 15px;
             padding: 20px;
             width: 300px;
             box-shadow: 2px 2px 12px rgba(0,0,0,0.3);
             z-index: 9999;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { right: -350px; opacity: 0; }
+            to { right: 90px; opacity: 1; }
         }
         </style>
         <div class='floating-chatbox'>
