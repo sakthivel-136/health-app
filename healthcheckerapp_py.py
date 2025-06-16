@@ -7,11 +7,10 @@ Original file is located at
     https://colab.research.google.com/drive/1HF3HtWcbGulDItoUdLITLyXfq1P2dbK5
 """
 import streamlit as st
+import os
 import openai
-import re
 
-# OpenAI API Key (Don't expose this in public apps)
-openai.api_key = "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"  # 🔐 Replace with your key securely (via secrets in real deployment)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Streamlit Page Config
 st.set_page_config(page_title="Health Checker", layout="centered")
