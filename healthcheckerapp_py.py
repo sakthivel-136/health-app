@@ -7,44 +7,47 @@ Original file is located at
     https://colab.research.google.com/drive/1HF3HtWcbGulDItoUdLITLyXfq1P2dbK5
 """
 import streamlit as st
+import streamlit.components.v1 as components
 import random
 
 # Set page config
-st.set_page_config(page_title="🩺 Health Checker", layout="wide")
+st.set_page_config(page_title="🯪 Health Checker", layout="wide")
 
-# Session state to toggle chat visibility
-if "chat_visible" not in st.session_state:
-    st.session_state.chat_visible = False
+# Session state toggle via URL
+query_params = st.experimental_get_query_params()
+toggle_chat = query_params.get("chat", ["false"])[0] == "true"
+st.session_state.chat_visible = toggle_chat
 
-# Chat button toggle
-chat_button = "💬"
-chat_btn_style = """
-    <style>
-    .floating-btn {
-        position: fixed;
-        top: 40%;
-        right: 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        font-size: 30px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-        z-index: 9999;
-        transition: transform 0.3s ease-in-out;
-    }
+# Floating Button + Toggle logic
+st.markdown("""
+<style>
+.floating-btn {
+    position: fixed;
+    top: 40%;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    text-align: center;
+    line-height: 60px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: transform 0.3s ease-in-out;
+    cursor: pointer;
+}
+.floating-btn:hover {
+    transform: scale(1.1);
+}
+</style>
 
-    .floating-btn:hover {
-        transform: scale(1.1);
-        cursor: pointer;
-    }
-    </style>
-"""
-st.markdown(chat_btn_style, unsafe_allow_html=True)
-if st.button(chat_button, key="toggle_chat", help="Chat with assistant"):
-    st.session_state.chat_visible = not st.session_state.chat_visible
+<a href='?chat=%s'>
+    <div class='floating-btn'>💬</div>
+</a>
+""" % ("false" if st.session_state.chat_visible else "true"), unsafe_allow_html=True)
 
 # App layout
 left, center, right = st.columns([1, 2, 3])
@@ -59,7 +62,7 @@ with center:
 
 # Sidebar (left column) - tool selection
 with left:
-    st.markdown("<h2 style='margin-bottom:10px;'>🧰 Tools</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin-bottom:10px;'>🧠 Tools</h2>", unsafe_allow_html=True)
     st.markdown("<div style='padding-left: 10px;'>", unsafe_allow_html=True)
     tool = st.radio("Select a health tool:", [
         "None", "BMI Calculator", "Blood Pressure Checker", "Hydration Checker",
@@ -78,7 +81,7 @@ with right:
         """, unsafe_allow_html=True)
 
     elif tool == "BMI Calculator":
-        st.header("🧮 BMI Calculator")
+        st.header("🧲 BMI Calculator")
         height = st.number_input("Enter your height (in meters):", min_value=0.0, format="%.2f")
         weight = st.number_input("Enter your weight (in kilograms):", min_value=0.0, format="%.2f")
         if st.button("Calculate BMI"):
@@ -95,7 +98,7 @@ with right:
                     st.error("You are obese.")
 
     elif tool == "Blood Pressure Checker":
-        st.header("🩺 Blood Pressure Checker")
+        st.header("🧰 Blood Pressure Checker")
         systolic = st.number_input("Enter Systolic (upper) value:", min_value=0)
         diastolic = st.number_input("Enter Diastolic (lower) value:", min_value=0)
         if st.button("Check BP"):
