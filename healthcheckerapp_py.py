@@ -27,7 +27,7 @@ left, center, right = st.columns([1, 2, 3])
 with center:
     st.markdown("""
     <div style='display: flex; justify-content: center;'>
-        <h1 style='color: #4CAF50;'>Health Checker</h1>
+        <h1 style='color: #4CAF50;'>Health Analyser</h1>
     </div>
     """, unsafe_allow_html=True)
 
