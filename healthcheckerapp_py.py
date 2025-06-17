@@ -10,7 +10,7 @@ import streamlit as st
 import random
 
 # Set page config
-st.set_page_config(page_title="🯪 Health Checker", layout="wide")
+st.set_page_config(page_title="🯪 Health Analyser", layout="wide")
 
 # Initialize session state for chat visibility
 if "chat_visible" not in st.session_state:
